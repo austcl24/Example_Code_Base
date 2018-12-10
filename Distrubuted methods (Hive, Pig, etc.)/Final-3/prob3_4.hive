@@ -1,0 +1,20 @@
+-- Question 4 - Which 10 blocks have the highest occurrence of narcotic offenses over the life of the 
+-- data, and what were their arrest ratios?
+
+DROP VIEW IF EXISTS q3_4_view1;
+
+CREATE VIEW q3_4_view1 AS SELECT count(id1) as counted, sum(arrestval) as arrested, primarytype, block from chicago1 group by block, primarytype;
+
+select counted, arrested, round((100*arrested/counted),2), '%', block from q3_4_view1 where primarytype == 'NARCOTICS' order by counted desc LIMIT 10;
+
+--2670	2619	98.09	%	033XX W FILLMORE ST
+--2485	2463	99.11	%	005XX E BROWNING AVE
+--1803	1785	99.0	%	038XX W ROOSEVELT RD
+--1800	1775	98.61	%	023XX S STATE ST
+--1565	1525	97.44	%	027XX S DEARBORN ST
+--1369	1343	98.1	%	029XX S STATE ST
+--1329	1322	99.47	%	039XX W GRENSHAW ST
+--1225	1221	99.67	%	012XX N BURLING ST
+--1215	1214	99.92	%	051XX W MADISON ST
+--1136	1134	99.82	%	048XX W MONROE ST
+

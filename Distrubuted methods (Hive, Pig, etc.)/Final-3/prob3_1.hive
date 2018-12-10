@@ -1,0 +1,73 @@
+-- NOTE: PLEASE RUN prob3_0.hive BEFORE RUNNING THIS FILE !!
+
+-- Question 1: Are violent crimes (Assaults, Homicides, Battery, Criminal Sexual Assualt)
+-- more prevalent as a percentage of crimes reported in the summer months than in the rest 
+-- of the year? In other words, are they more likely to occur as a fraction of that season's 
+-- reported offenses?
+
+-- Season breakdown is in the seasons table:
+
+--1	Winter
+--2	Winter
+--3	Spring
+--4	Spring
+--5	Spring
+--6	Summer
+--7	Summer
+--8	Summer
+--9	Fall
+--10	Fall
+--11	Fall
+--12	Winter
+
+DROP VIEW IF EXISTS q3_1_view1;
+
+CREATE VIEW IF NOT EXISTS q3_1_view1 AS select a.primarytype, count(primarytype) as primarycount, a.eventmonth, b.monthcount, c.season 
+from chicago1 a
+left outer join chicago2 b on a.eventmonth = b.eventmonth
+left outer join seasons c on a.eventmonth = c.month
+where a.primarytype IN ('HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ASSAULT') 
+group by a.primarytype, a.eventmonth, b.monthcount, c.season 
+order by a.primarytype, a.eventmonth, b.monthcount, c.season;
+
+-- Homicides per 100,000 crime reports. Summer is the highest season.
+
+select round(100000*(sum(primarycount)/sum(monthcount)),2), season, 'HOMICIDE' from q3_1_view1 where primarytype == 'HOMICIDE' group by season;
+
+--120.1		Fall	HOMICIDE
+--104.78 	Spring  HOMICIDE
+--129.06 	Summer  HOMICIDE
+--99.21		Winter  HOMICIDE
+
+-- Batteries (as a % of all reports). Summer is the second-highest season, but barely.
+
+select round(100*(sum(primarycount)/sum(monthcount)),2), season, 'BATTERY' from q3_1_view1 where primarytype == 'BATTERY' group by season;
+
+--17.41		Fall	BATTERY
+--19.04		Spring	BATTERY
+--18.91		Summer	BATTERY
+--17.11		Winter	BATTERY
+
+-- Criminal Sexual Assault per 100,000. Summer is the highest season.
+
+select round(100000*(sum(primarycount)/sum(monthcount)),2), season, 'CRIM SEXUAL ASSAULT' from q3_1_view1 where primarytype == 'CRIM SEXUAL ASSAULT' group by season;
+
+--369.16	Fall	CRIM SEXUAL ASSAULT
+--360.74	Spring	CRIM SEXUAL ASSAULT
+--389.25	Summer	CRIM SEXUAL ASSAULT
+--385.29	Winter	CRIM SEXUAL ASSAULT
+
+-- Assaults per 1,000. Summer is second-highest.
+
+select round(1000*(sum(primarycount)/sum(monthcount)),2), season, 'ASSAULT' from q3_1_view1 where primarytype == 'ASSAULT' group by season;
+
+--59.12		Fall	ASSAULT
+--64.03		Spring	ASSAULT
+--62.54		Summer	ASSAULT
+--56.21		Winter	ASSAULT
+
+-- Other questions that the data could shed light on: Do we have similar Summer reporting ratios
+-- for non-violent types of crime? Are there others that are counter-cyclical to violent
+-- crimes?
+
+

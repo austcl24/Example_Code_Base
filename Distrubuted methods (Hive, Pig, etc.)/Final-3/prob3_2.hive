@@ -1,0 +1,87 @@
+-- NOTE: PLEASE RUN prob3_0.hive BEFORE RUNNING THIS FILE !!
+
+-- Question 2: Are robberies and other crimes of opportunity (theft, burglary, prostitution, 
+-- criminal trespass, etc.) more prevalently reported at a specific time of day? In other words, are
+-- they at a higher percentage of that time's calls?
+
+--12	AM	Overnight	Night
+--1	AM	Overnight	Night
+--2	AM	Overnight	Night
+--3	AM	Overnight	Night
+--4	AM	Early Morning	Morning
+--5	AM	Early Morning	Morning
+--6	AM	Early Morning	Morning
+--7	AM	Early Morning	Morning
+--8	AM	Late Morning	Morning
+--9	AM	Late Morning	Morning
+--10	AM	Late Morning	Morning
+--11	AM	Late Morning	Morning
+--12	PM	Early Afternoon	Afternoon
+--1	PM	Early Afternoon	Afternoon
+--2	PM	Early Afternoon	Afternoon
+--3	PM	Early Afternoon	Afternoon
+--4	PM	Late Afternoon	Afternoon
+--5	PM	Late Afternoon	Afternoon
+--6	PM	Late Afternoon	Afternoon
+--7	PM	Late Afternoon	Afternoon
+--8	PM	Evening		Night
+--9	PM	Evening		Night
+--10	PM	Evening		Night
+--11	PM	Evening		Night
+
+DROP VIEW IF EXISTS q3_2_view1;
+
+CREATE VIEW IF NOT EXISTS q3_2_view1 AS 
+select a.primarytype, count(primarytype) as primarycount, a.eventhour, a.eventampm, b.hourcount,
+c.timeframe
+from chicago1 a
+left outer join chicago3 b on a.eventhour = b.eventhour and a.eventampm = b.eventampm
+left outer join times c on a.eventhour = c.hour and a.eventampm = c.ampm
+WHERE a.primarytype IN ('THEFT', 'ROBBERY', 'PROSTITUTION', 'BURGLARY')
+GROUP BY a.primarytype, a.eventampm, a.eventhour, b.hourcount, c.timeframe 
+ORDER BY a.primarytype, a.eventampm, a.eventhour, b.hourcount, c.timeframe;
+
+-- Thefts are more commonly reported as a percentage of reports in that timeframe in the 
+-- early afteroon and late morning.
+select round(100*(sum(primarycount)/sum(hourcount)),2), timeframe, 'THEFT' from q3_2_view1 where primarytype == 'THEFT' group by timeframe;
+
+--24.42	Early Afternoon	THEFT
+--18.82	Early Morning	THEFT
+--15.7	Evening		THEFT
+--22.36	Late Afternoon	THEFT
+--23.6	Late Morning	THEFT
+--17.53	Overnight	THEFT
+
+
+-- Robberies are more commonly reported as a percentage of reports in that timeframe in the 
+-- early morning and overnight.
+select round(100*(sum(primarycount)/sum(hourcount)),2), timeframe, 'ROBBERY' from q3_2_view1 where primarytype == 'ROBBERY' group by timeframe;
+--3.06	Early Afternoon	ROBBERY
+--4.89	Early Morning	ROBBERY
+--4.29	Evening		ROBBERY
+--3.87	Late Afternoon	ROBBERY
+--2.47	Late Morning	ROBBERY
+--4.96	Overnight	ROBBERY
+
+-- Prostitution more commonly reported as a percentage of reports in that timeframe in the 
+-- early morning and evening.
+select round(100*(sum(primarycount)/sum(hourcount)),2), timeframe, 'PROSTITUTION' from q3_2_view1 where primarytype == 'PROSTITUTION' group by timeframe;
+--0.36	Early Afternoon	PROSTITUTION
+--2.52	Early Morning	PROSTITUTION
+--2.09	Evening		PROSTITUTION
+--0.55	Late Afternoon	PROSTITUTION
+--0.91	Late Morning	PROSTITUTION
+--0.95	Overnight	PROSTITUTION
+
+-- Burglaries are more commonly reported as a percentage of reports in that timeframe in the 
+-- early morning and late morning,
+select round(100*(sum(primarycount)/sum(hourcount)),2), timeframe, 'BURGLARY' from q3_2_view1 where primarytype == 'BURGLARY' group by timeframe;
+
+--5.84	Early Afternoon	BURGLARY
+--11.13	Early Morning	BURGLARY
+--3.96	Evening		BURGLARY
+--5.23	Late Afternoon	BURGLARY
+--8.5	Late Morning	BURGLARY
+--4.64	Overnight	BURGLARY
+
+

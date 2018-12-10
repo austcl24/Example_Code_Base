@@ -1,0 +1,42 @@
+SET hive.exec.dynamic.partition.mode=nonstrict;
+
+DROP VIEW IF EXISTS chicago1;
+DROP VIEW IF EXISTS chicago2;
+DROP VIEW IF EXISTS chicago3;
+DROP TABLE IF EXISTS chicago;
+DROP TABLE IF EXISTS seasons;
+DROP TABLE IF EXISTS times;
+
+-- Table chicago : main data files (previously concatenated) from kaggle.com comprising Chicago 
+-- crime data from 2001 to 2016 complete, and 2017 partial.
+
+CREATE EXTERNAL TABLE IF NOT EXISTS chicago(id1 STRING, id2 STRING, casenumber STRING, eventdate STRING, block STRING, IUCR STRING, primarytype STRING, description STRING, locationdesc STRING, arrest STRING, domestic STRING, beat STRING, district STRING, ward STRING, community STRING, FBIcode STRING, x_coord STRING, y_coord STRING, year STRING, updatedate STRING, latitude STRING, longitude STRING, location STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LOCATION '/home/ubuntu/final/Chicago/Crimedata';
+
+-- Table seasons : groups months into seasons for seasonal comparisons.
+
+CREATE EXTERNAL TABLE IF NOT EXISTS seasons(month INT, season STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LOCATION '/home/ubuntu/final/Chicago/Seasondata';
+
+-- Table times : groups time of day into six four-hour buckets to aid in determining if crimes 
+-- are more prevalent at certain times of the day.
+
+CREATE EXTERNAL TABLE IF NOT EXISTS times(hour INT, ampm STRING, timeframe STRING, timegroup STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LOCATION '/home/ubuntu/final/Chicago/Timedata';
+
+-- View chicago1 : Takes chicago table and breaks out substringable values for further consideration.
+
+CREATE VIEW IF NOT EXISTS chicago1 AS 
+select id1, id2, casenumber, substr(eventdate,1,2) as eventmonth, substr(eventdate,4,2) as eventday, substr(eventdate,7,4) as eventyear, substr(eventdate,12,2) as eventhour, substr(eventdate,15,2) as eventminute, substr(eventdate, 18, 2) as eventsecond, substr(eventdate,21,2) as eventampm, block, iucr, primarytype, description, locationdesc, 
+CASE WHEN arrest == 'True' then 1 else 0 end arrestval, 
+CASE WHEN domestic == 'True' then 1 else 0 end domesticval, 
+beat, district, ward, community, fbicode, x_coord, y_coord, year, substr(updatedate,1,2) as updatemonth, substr(updatedate,4,2) as updateday, substr(updatedate,7,4) as updateyear, substr(updatedate,12,2) as updatehour, substr(updatedate,21,2) as updateampm, latitude, longitude, location from chicago;
+
+-- View chicago2 : Used to generate a master count of events by month. Useful when seeing what 
+-- types of crimes are more prevalent than others within a specific month.
+-- However, not to be used when comparing year-to-year (as 2017 is not complete).
+
+CREATE VIEW IF NOT EXISTS chicago2 AS select count(id1) as monthcount, eventmonth from chicago1 group by eventmonth order by eventmonth;
+
+-- View chicago3 : Used to generate a master count of events by hour of day. Useful when seeing 
+-- what types of crimes are more prevalent than others within a specific time of day.
+
+CREATE VIEW IF NOT EXISTS chicago3 AS select count(id1) as hourcount, eventampm, eventhour from chicago1 group by eventampm, eventhour order by eventampm, eventhour;
+

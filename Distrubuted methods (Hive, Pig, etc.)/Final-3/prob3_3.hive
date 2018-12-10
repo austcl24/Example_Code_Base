@@ -1,0 +1,26 @@
+-- NOTE: PLEASE RUN prob3_0.hive BEFORE RUNNING THIS FILE !!
+
+-- Question 3: Does the Chicago police department have a better arrest percentage for violent crimes
+-- (Assaults, Homicides, Battery, Criminal Sexual Assualt) in the first four years of the dataset
+-- (2001-2004) than in the last four years of the dataset (2012-2015) ? 2016 and partial 2017 have
+-- been thrown out, as investigations may still be pending.
+
+select '2001-04' as period, substr(concat(primarytype,'                  '),1,20) as primary, sum(arrestval) as arrests, count(id1) as reports, round(100*sum(arrestval)/count(id1),2) as ratio, '%' from chicago1 where eventyear in ('2001', '2002', '2003', '2004') and primarytype in ('HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ASSAULT') group by primarytype
+
+union all
+
+select '2012-15' as period, substr(concat(primarytype,'                  '),1,20) as primary, sum(arrestval) as arrests, count(id1) as reports, round(100*sum(arrestval)/count(id1),2) as ratio, '%' from chicago1 where eventyear in ('2012', '2013', '2014', '2015') and primarytype in ('HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ASSAULT') group by primarytype;
+
+--2012-15	ASSAULT             	16657	71805	23.2	%
+--2012-15	BATTERY             	47027	211483	22.24	%
+--2012-15	HOMICIDE            	717	1846	38.84	%
+--2012-15	CRIM SEXUAL ASSAULT 	705	5314	13.27	%
+--2001-04	ASSAULT             	26160	121417	21.55	%
+--2001-04	BATTERY             	77859	363538	21.42	%
+--2001-04	HOMICIDE            	1996	3172	62.93	%
+--2001-04	CRIM SEXUAL ASSAULT 	1491	7079	21.06	%
+
+-- Assault arrest rates have increased marginally since the early years of the dataset. 
+-- Same goes for battery but criminal sexual assault and homicide arrest rates have 
+-- decreased sharply since the early years of the dataset.
+
